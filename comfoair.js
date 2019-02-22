@@ -20,11 +20,12 @@ module.exports = function (RED) {
                 return RED.log.error(`comfoair error: comfoair: ${err}`);
             });
 
-            node.comfoair.on('data', function (msg) {
-                if (msg) {
-                    if(!msg.payload) {
-                        msg.payload = msg.type || {};
-                    }
+            node.comfoair.on('data', function (chunk) {
+                if (chunk) {
+                    const msg = {
+                        payload: chunk.payload || {}
+                    };
+                    msg.payload.type = chunk.type;
                     return node.send(msg);
                 }
             });
