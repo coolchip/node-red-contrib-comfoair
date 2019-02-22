@@ -1,0 +1,24 @@
+{
+    "comfoair-connection": {
+        "label": {
+            "serialport": "Serial port",
+            "settings": "Settings",
+            "baudrate": "Baud rate",
+            "databits": "Data bits",
+            "parity": "Parity",
+            "stopbits": "Stop bits",
+            "filepath": "Filename"
+        },
+        "placeholder": {
+            "serialport": "for example: /dev/ttyUSB0/",
+            "filepath": "for example: /tmp/data.json"
+        },
+        "parity": {
+            "none": "None",
+            "even": "Even",
+            "mark": "Mark",
+            "odd": "Odd",
+            "space": "Space"
+        }
+    }
+}
