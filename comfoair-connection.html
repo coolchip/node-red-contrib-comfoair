@@ -18,50 +18,14 @@
                         <span data-i18n="comfoair-connection.label.settings"></span>
                     </td>
                     <td width="110px" data-i18n="comfoair-connection.label.baudrate"></td>
-                    <td width="70px" data-i18n="comfoair-connection.label.databits"></td>
-                    <td width="80px" data-i18n="comfoair-connection.label.parity"></td>
-                    <td width="70px" data-i18n="comfoair-connection.label.stopbits"></td>
                 </tr>
                 <tr>
                     <td>&nbsp;</td>
                     <td>
                         <input type="text" id="node-config-input-serialbaud" style="width:100px">
                     </td>
-                    <td>
-                        <select type="text" id="node-config-input-databits" style="width:70px;">
-                            <option value="8">8</option>
-                            <option value="7">7</option>
-                            <option value="6">6</option>
-                            <option value="5">5</option>
-                        </select>
-                    </td>
-                    <td>
-                        <select type="text" id="node-config-input-parity" style="width:80px;">
-                            <option value="none" data-i18n="comfoair-connection.parity.none"></option>
-                            <option value="even" data-i18n="comfoair-connection.parity.even"></option>
-                            <option value="mark" data-i18n="comfoair-connection.parity.mark"></option>
-                            <option value="odd" data-i18n="comfoair-connection.parity.odd"></option>
-                            <option value="space" data-i18n="comfoair-connection.parity.space"></option>
-                        </select>
-                    </td>
-                    <td>
-                        <select type="text" id="node-config-input-stopbits" style="width:70px;">
-                            <option value="2">2</option>
-                            <option value="1">1</option>
-                        </select>
-                    </td>
                 </tr>
             </table>
-        </div>
-    </div>
-
-    <div id="node-inputs-comfoair-file">
-        <div class="form-row">
-            <label for="node-config-input-filepath">
-                <i class="fa fa-file"></i>
-                <span data-i18n="comfoair-connection.label.filepath"></span>
-            </label>
-            <input type="text" id="node-config-input-filepath" data-i18n="[placeholder]comfoair-connection.placeholder.filepath">
         </div>
     </div>
 </script>
@@ -78,31 +42,11 @@
                 value: '9600',
                 required: true,
                 validate: RED.validators.number()
-            },
-            databits: {
-                value: 8,
-                required: true
-            },
-            parity: {
-                value: 'none',
-                required: true
-            },
-            stopbits: {
-                value: 1,
-                required: true
-            },
-            filepath: {
-                value: '',
-                required: true
             }
         },
         label: function () {
             this.serialbaud = this.serialbaud || 9600;
-            this.databits = this.databits || 8;
-            this.parity = this.parity || this._('comfoair-connection.parity.none');
-            this.stopbits = this.stopbits || 1;
-            return this.serialport + ':' + this.serialbaud + '-' + this.databits + this.parity.charAt(0)
-                .toUpperCase() + this.stopbits;
+            return this.serialport + ':' + this.serialbaud;
         },
         oneditprepare: function () {
             var blist = [{
@@ -203,7 +147,6 @@
                 $('#node-config-input-serialbaud').typedInput('value', mytype);
             }
             this.serialbaud = $('#node-config-input-serialbaud').typedInput('value');
-            $('#node-config-input-filepath').val('/dev/null');
         }
     });
 </script>
