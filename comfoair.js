@@ -20,11 +20,11 @@ module.exports = function (RED) {
                 return RED.log.error(`comfoair error: comfoair: ${err}`);
             });
 
-            node.comfoair.on('data', function (chunk) {
-                if (chunk) {
-                    const msg = {
-                        payload: chunk
-                    };
+            node.comfoair.on('data', function (msg) {
+                if (msg) {
+                    if(!msg.payload) {
+                        msg.payload = msg.type || {};
+                    }
                     return node.send(msg);
                 }
             });
@@ -49,9 +49,9 @@ module.exports = function (RED) {
                 if (msg.hasOwnProperty('payload')) {
                     let payload = msg.payload;
                     //if (typeof payload === 'object') {}
-                    node.port.write(payload, function (err) {
+                    node.comfoair.write(payload, function (err) {
                         if (err) {
-                            const errmsg = err.toString().replace('Serialport', 'Serialport ' + node.port.serial.path);
+                            const errmsg = err.toString().replace('Serialport', 'Serialport ' + node.comfoair.comfoair.path);
                             node.error(errmsg, msg);
                         }
                     });
