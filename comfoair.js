@@ -20,16 +20,6 @@ module.exports = function (RED) {
                 return RED.log.error(`comfoair error: comfoair: ${err}`);
             });
 
-            node.comfoair.on('data', function (chunk) {
-                if (chunk) {
-                    const msg = {
-                        payload: chunk.payload || {}
-                    };
-                    msg.payload.type = chunk.type;
-                    return node.send(msg);
-                }
-            });
-
             node.comfoair.on('ready', function () {
                 node.status({
                     fill: 'green',
@@ -48,12 +38,19 @@ module.exports = function (RED) {
 
             node.on('input', function (msg) {
                 if (msg.hasOwnProperty('payload')) {
-                    let payload = msg.payload;
-                    //if (typeof payload === 'object') {}
-                    node.comfoair.write(payload, function (err) {
+                    if (typeof msg.payload.name !== 'string') return node.error('Invalid data for msg.payload.name. Expect a function name as string.', msg);
+                    if (typeof msg.payload.params !== 'object') return node.error('Invalid data for msg.payload.params. Expect an object with parameters', msg);
+                    if (typeof node.comfoair.comfoair[msg.payload.name] !== 'function') return node.error(`Input '${msg.payload.name}' is no valid function name`, msg);
+
+                    node.comfoair.comfoair.runCommand( msg.payload.name, msg.payload.params, (err, resp) => {
                         if (err) {
                             const errmsg = err.toString().replace('Serialport', 'Serialport ' + node.comfoair.comfoair.path);
-                            node.error(errmsg, msg);
+                            return node.error(errmsg, msg);
+                        }
+                        if (resp) {
+                            msg.payload = resp.payload || {};
+                            msg.payload.type = resp.type;
+                            return node.send(msg);
                         }
                     });
                 }
