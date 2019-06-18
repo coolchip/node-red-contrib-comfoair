@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-comfoair",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Node-RED Node, that reads and parses the data from a Zehnder ComfoAir 350 and similar devices",
   "main": "comfoair.js",
   "dependencies": {
