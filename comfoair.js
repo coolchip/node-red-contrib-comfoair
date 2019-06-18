@@ -4,7 +4,6 @@ const Comfoair = require('comfoair');
 const events = require('events');
 
 module.exports = function (RED) {
-
     const settings = RED.settings;
 
     function ComfoairNode(config) {
@@ -17,7 +16,7 @@ module.exports = function (RED) {
                 this.comfoairDatasource.serialbaud);
 
             node.comfoair.on('error', function (err) {
-                return RED.log.error(`comfoair error: comfoair: ${err}`);
+                return RED.log.error(`comfoair error: ${err}`);
             });
 
             node.comfoair.on('ready', function () {
@@ -39,13 +38,13 @@ module.exports = function (RED) {
             node.on('input', function (msg) {
                 if (msg.hasOwnProperty('payload')) {
                     if (typeof msg.payload.name !== 'string') return node.error('Invalid data for msg.payload.name. Expect a function name as string.', msg);
-                    if (typeof msg.payload.params !== 'object') return node.error('Invalid data for msg.payload.params. Expect an object with parameters', msg);
-                    if (typeof node.comfoair.comfoair[msg.payload.name] !== 'function') return node.error(`Input '${msg.payload.name}' is no valid function name`, msg);
+                    if (typeof msg.payload.params !== 'object') return node.error('Invalid data for msg.payload.params. Expect an object.', msg);
+                    if (!node.comfoair.isValidFunction(msg.payload.name)) return node.error(`Input '${msg.payload.name}' is no valid function name.`, msg);
 
-                    node.comfoair.comfoair.runCommand( msg.payload.name, msg.payload.params, (err, resp) => {
+                    node.comfoair.runCommand(msg.payload.name, msg.payload.params, (err, resp) => {
                         if (err) {
-                            const errmsg = err.toString().replace('Serialport', 'Serialport ' + node.comfoair.comfoair.path);
-                            return node.error(errmsg, msg);
+                            const errMsg = err.toString().replace('Serialport', 'Serialport ' + node.comfoair.port);
+                            return node.error(errMsg, msg);
                         }
                         if (resp) {
                             msg.payload = resp.payload || {};
@@ -68,7 +67,6 @@ module.exports = function (RED) {
     }
     RED.nodes.registerType('comfoair', ComfoairNode);
 
-
     const comfoairPool = (function () {
         const connections = {};
         return {
@@ -81,15 +79,19 @@ module.exports = function (RED) {
                             comfoair: null,
                             _closing: false,
                             tout: null,
-                            on: function (a, b) {
-                                this._emitter.on(a, b);
+                            port: port,
+                            on: function (eventName, cb) {
+                                this._emitter.on(eventName, cb);
                             },
                             close: function (cb) {
                                 this.comfoair.close(cb);
                             },
-                            write: function (m, cb) {
-                                this.comfoair.write(m, cb);
+                            runCommand: function (name, params, cb) {
+                                this.comfoair.runCommand(name, params, cb);
                             },
+                            isValidFunction: function (name) {
+                                return (typeof this.comfoair[name] === 'function');
+                            }
                         };
                         let olderr = '';
                         const setupComfoair = function () {
@@ -145,11 +147,6 @@ module.exports = function (RED) {
                             });
                             obj.comfoair.on('data', function (d) {
                                 obj._emitter.emit('data', d);
-                            });
-                            obj.comfoair.on('disconnect', function () {
-                                RED.log.error(RED._('comfoair.errors.disconnected', {
-                                    port: port
-                                }));
                             });
                         };
                         setupComfoair();
