@@ -15,6 +15,10 @@ module.exports = function (RED) {
             node.comfoair = comfoairPool.get(this.comfoairDatasource.serialport,
                 this.comfoairDatasource.serialbaud);
 
+            node.comfoair.on('error', function (err) {
+                return RED.log.error(`comfoair [${node.comfoair.port}] emmited error: ${err.message}`);
+            });
+
             node.comfoair.on('ready', function () {
                 node.status({
                     fill: 'green',
@@ -39,7 +43,7 @@ module.exports = function (RED) {
 
                     node.comfoair.runCommand(msg.payload.name, msg.payload.params, (err, resp) => {
                         if (err) {
-                            const errMsg = `comfoair [${node.comfoair.port}] run command '${msg.payload.name}': ${err.message}`;
+                            const errMsg = `comfoair [${node.comfoair.port}] runCommand(${msg.payload.name}): ${err.message}`;
                             return node.error(errMsg, msg);
                         }
                         if (resp) {
@@ -177,3 +181,4 @@ module.exports = function (RED) {
         };
     }());
 };
+
