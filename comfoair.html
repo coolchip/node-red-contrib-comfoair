@@ -1,5 +1,11 @@
 <script type="text/x-red" data-help-name="comfoair">
     <p>Node to provide data from comfoair</p>
+    <p>To send commands to your Comfoair you have to send messages with a command name and params.</p>
+    <p>This have to look like this: <code>{"name":"setLevel","params":{"level":"away"}}</code></p>
+    <p>Also for reading data: <code>{
+        "name": "getTemperatureStates",
+        "params": {}
+    }</code></p>
 </script>
 
 <script type="text/x-red" data-template-name="comfoair">

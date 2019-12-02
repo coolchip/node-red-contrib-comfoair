@@ -8,17 +8,12 @@ module.exports = function (RED) {
 
     function ComfoairNode(config) {
         RED.nodes.createNode(this, config);
-        const node = this;
+        this.serialConfig = RED.nodes.getNode(config.datasource);
 
-        node.comfoairDatasource = RED.nodes.getNode(config.datasource);
-        if (node.comfoairDatasource) {
-            node.comfoair = comfoairPool.get(this.comfoairDatasource.serialport,
-                this.comfoairDatasource.serialbaud);
+        if (this.serialConfig) {
+            const node = this;
 
-            node.comfoair.on('error', function (err) {
-                return RED.log.error(`comfoair [${node.comfoair.port}] emmited error: ${err.message}`);
-            });
-
+            node.comfoair = comfoairPool.get(this.serialConfig.serialport, this.serialConfig.serialbaud);
             node.comfoair.on('ready', function () {
                 node.status({
                     fill: 'green',
@@ -26,7 +21,6 @@ module.exports = function (RED) {
                     text: 'node-red:common.status.connected'
                 });
             });
-
             node.comfoair.on('closed', function () {
                 node.status({
                     fill: 'red',
@@ -35,31 +29,63 @@ module.exports = function (RED) {
                 });
             });
 
-            node.on('input', function (msg) {
-                if (msg.hasOwnProperty('payload')) {
-                    if (typeof msg.payload.name !== 'string') return node.error('Invalid data for msg.payload.name. Expect a function name as string.', msg);
-                    if (typeof msg.payload.params !== 'object') return node.error('Invalid data for msg.payload.params. Expect an object.', msg);
-                    if (!node.comfoair.isValidFunction(msg.payload.name)) return node.error(`Input '${msg.payload.name}' is no valid function name.`, msg);
+            this.on('input', function (msg, send, done) {
+                // For maximum backwards compatibility, check that send exists.
+                // If this node is installed in Node-RED 0.x, it will need to
+                // fallback to using `node.send`
+                send = send || function () {
+                    node.send.apply(node, arguments);
+                };
+                const handleError = function (err, msg) {
+                    if (done) {
+                        done(err);
+                    } else {
+                        node.error(err, msg);
+                    }
+                };
+                if (Object.prototype.hasOwnProperty.call(msg, 'payload')) {
+                    if (typeof msg.payload.name !== 'string') return handleError('Invalid data for msg.payload.name. Expected a function name as string.', msg);
+                    if (typeof msg.payload.params !== 'object') return handleError('Invalid data for msg.payload.params. Expected an object.', msg);
+                    if (!node.comfoair.isValidFunction(msg.payload.name)) return handleError(`Input '${msg.payload.name}' is no valid function name.`, msg);
 
                     node.comfoair.runCommand(msg.payload.name, msg.payload.params, (err, resp) => {
                         if (err) {
-                            const errMsg = `comfoair [${node.comfoair.port}] runCommand(${msg.payload.name}): ${err.message}`;
-                            return node.error(errMsg, msg);
+                            return comfoairPool.close(node.serialConfig.serialport, () => {
+                                node.comfoair = comfoairPool.get(node.serialConfig.serialport, node.serialConfig.serialbaud);
+                                const errMsg = `comfoair [${node.comfoair.port}] runCommand(${msg.payload.name}): ${err.message}`;
+                                handleError(errMsg, msg);
+                            });
                         }
                         if (resp) {
+                            if (!resp.valid) {
+                                RED.log.warn(`Invalid checksum or frame length for ${msg.payload.name}`);
+                                if (done) {
+                                    done();
+                                }
+                                return;
+                            }
+
                             msg.payload = resp.payload || {};
                             msg.payload.type = resp.type;
-                            return node.send(msg);
+                            send(msg);
+                            if (done) {
+                                done();
+                            }
                         }
                     });
+                } else {
+                    if (done) {
+                        done();
+                    }
                 }
             });
         } else {
             this.error(RED._('comfoair.errors.missing-conf'));
         }
-        node.on('close', function (done) {
-            if (node.comfoairDatasource) {
-                comfoairPool.close(node.comfoairDatasource.serialport, done);
+
+        this.on('close', function (done) {
+            if (this.serialConfig) {
+                comfoairPool.close(this.serialConfig.serialport, done);
             } else {
                 done();
             }
@@ -75,7 +101,7 @@ module.exports = function (RED) {
                 // key is the port (file path)
                 const id = port;
                 if (connections[id]) return connections[id];
-                
+
                 connections[id] = (function () {
                     const obj = {
                         _emitter: new events.EventEmitter(),
@@ -96,31 +122,22 @@ module.exports = function (RED) {
                             return (typeof this.comfoair[name] === 'function');
                         }
                     };
-                    let olderr = '';
                     const setupComfoair = function () {
                         obj.comfoair = new Comfoair({
-                                port,
-                                baud
-                            },
-                            function (err) {
-                                if (err) {
-                                    if (err.toString() !== olderr) {
-                                        olderr = err.toString();
-                                        RED.log.error(RED._('comfoair.errors.error', {
-                                            port,
-                                            error: olderr
-                                        }));
-                                    }
-                                    obj.tout = setTimeout(function () {
-                                        setupComfoair();
-                                    }, settings.serialReconnectTime);
-                                }
-                            });
+                            port,
+                            baud
+                        });
                         obj.comfoair.on('error', function (err) {
                             RED.log.error(RED._('comfoair.errors.error', {
                                 port,
                                 error: err.toString()
                             }));
+                            connections[port].close(function (err) {
+                                RED.log.info(RED._('comfoair.errors.closed', {
+                                    port,
+                                    error: err.toString()
+                                }));
+                            });
                             obj._emitter.emit('closed');
                             obj.tout = setTimeout(function () {
                                 setupComfoair();
@@ -138,7 +155,6 @@ module.exports = function (RED) {
                             }
                         });
                         obj.comfoair.on('open', function () {
-                            olderr = '';
                             RED.log.info(RED._('comfoair.onopen', {
                                 port,
                                 baud
@@ -172,6 +188,7 @@ module.exports = function (RED) {
                         });
                     } catch (err) {
                         RED.log.error(err);
+                        done();
                     }
                     delete connections[port];
                 } else {
@@ -181,4 +198,3 @@ module.exports = function (RED) {
         };
     }());
 };
-

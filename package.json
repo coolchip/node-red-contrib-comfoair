@@ -4,7 +4,16 @@
   "description": "Node-RED Node, that reads and parses the data from a Zehnder ComfoAir 350 and similar devices",
   "main": "comfoair.js",
   "dependencies": {
-    "comfoair": "^0.2.1"
+    "comfoair": "^1.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^6.7.1",
+    "eslint-config-standard": "^14.1.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-node": "^10.0.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-require-path-exists": "^1.1.9",
+    "eslint-plugin-standard": "^4.0.1"
   },
   "keywords": [
     "node-red",
