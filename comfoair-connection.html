@@ -17,6 +17,13 @@
             </label>
             <input type="text" id="node-config-input-serialbaud" style="width:100px">
         </div>
+        <div class="form-row">
+            <label for="node-config-input-reconnectTimeout">
+                <i class="fa fa-clock-o"></i>
+                <span data-i18n="comfoair-connection.label.reconnectTimeout"></span>
+            </label>
+            <input type="text" id="node-config-input-reconnectTimeout" placeholder="5000">
+        </div>
     </div>
 </script>
 
@@ -32,7 +39,11 @@
                 value: '9600',
                 required: true,
                 validate: RED.validators.number()
-            }
+            },
+            reconnectTimeout: {
+                value: 5000,
+                required: true
+            },
         },
         label: function () {
             this.serialbaud = this.serialbaud || 9600;

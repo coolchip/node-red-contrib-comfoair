@@ -3,7 +3,8 @@
         "label": {
             "serialport": "Serial port",
             "settings": "Settings",
-            "baudrate": "Baud rate"
+            "baudrate": "Baud rate",
+            "reconnectTimeout": "Reconnect timeout (ms)"
         },
         "placeholder": {
             "serialport": "for example: /dev/ttyUSB0/"

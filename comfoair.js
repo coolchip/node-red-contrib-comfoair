@@ -4,8 +4,6 @@ const Comfoair = require('comfoair');
 const events = require('events');
 
 module.exports = function (RED) {
-    const settings = RED.settings;
-
     function ComfoairNode(config) {
         RED.nodes.createNode(this, config);
         this.serialConfig = RED.nodes.getNode(config.datasource);
@@ -13,7 +11,7 @@ module.exports = function (RED) {
         if (this.serialConfig) {
             const node = this;
 
-            node.comfoair = comfoairPool.get(this.serialConfig.serialport, this.serialConfig.serialbaud);
+            node.comfoair = comfoairPool.get(this.serialConfig.serialport, this.serialConfig.serialbaud, this.serialConfig.reconnectTimeout);
             node.comfoair.on('ready', function () {
                 node.status({
                     fill: 'green',
@@ -51,7 +49,7 @@ module.exports = function (RED) {
                     node.comfoair.runCommand(msg.payload.name, msg.payload.params, (err, resp) => {
                         if (err) {
                             return comfoairPool.close(node.serialConfig.serialport, () => {
-                                node.comfoair = comfoairPool.get(node.serialConfig.serialport, node.serialConfig.serialbaud);
+                                node.comfoair = comfoairPool.get(node.serialConfig.serialport, node.serialConfig.serialbaud, node.serialConfig.reconnectTimeout);
                                 const errMsg = `comfoair [${node.comfoair.port}] runCommand(${msg.payload.name}): ${err.message}`;
                                 handleError(errMsg, msg);
                             });
@@ -96,7 +94,7 @@ module.exports = function (RED) {
     const comfoairPool = (function () {
         const connections = {};
         return {
-            get(port, baud) {
+            get(port, baud, reconnectTimeout) {
                 // just return the connection object if already have one
                 // key is the port (file path)
                 const id = port;
@@ -141,7 +139,7 @@ module.exports = function (RED) {
                             obj._emitter.emit('closed');
                             obj.tout = setTimeout(function () {
                                 setupComfoair();
-                            }, settings.serialReconnectTime);
+                            }, reconnectTimeout);
                         });
                         obj.comfoair.on('close', function () {
                             if (!obj._closing) {
@@ -151,7 +149,7 @@ module.exports = function (RED) {
                                 obj._emitter.emit('closed');
                                 obj.tout = setTimeout(function () {
                                     setupComfoair();
-                                }, settings.serialReconnectTime);
+                                }, reconnectTimeout);
                             }
                         });
                         obj.comfoair.on('open', function () {

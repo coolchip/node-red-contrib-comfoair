@@ -5,6 +5,7 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, n);
         this.serialport = n.serialport;
         this.serialbaud = parseInt(n.serialbaud) || 9600;
+        this.reconnectTimeout = parseInt(n.reconnectTimeout) || 5000;
     }
     RED.nodes.registerType('comfoair-connection', ComfoairConnectionNode);
 
