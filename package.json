@@ -3,17 +3,14 @@
   "version": "0.0.6",
   "description": "Node-RED Node, that reads and parses the data from a Zehnder ComfoAir 350 and similar devices",
   "main": "comfoair.js",
+  "scripts": {
+    "lint": "npx eslint ."
+  },
   "dependencies": {
     "comfoair": "^1.0.3"
   },
   "devDependencies": {
-    "eslint": "^7.12.0",
-    "eslint-config-standard": "^15.0.0",
-    "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-require-path-exists": "^1.1.9",
-    "eslint-plugin-standard": "^4.0.2"
+    "eslint": "^8.4.1"
   },
   "keywords": [
     "node-red",
@@ -25,6 +22,7 @@
     "santos",
     "paul"
   ],
+  "homepage": "https://github.com/coolchip/node-red-contrib-comfoair#readme",
   "node-red": {
     "nodes": {
       "comfoair": "comfoair.js",
@@ -39,6 +37,5 @@
   },
   "bugs": {
     "url": "https://github.com/coolchip/node-red-contrib-comfoair/issues"
-  },
-  "homepage": "https://github.com/coolchip/node-red-contrib-comfoair#readme"
+  }
 }
