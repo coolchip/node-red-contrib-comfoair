@@ -1,11 +1,31 @@
 <script type="text/x-red" data-help-name="comfoair">
-    <p>Node to provide data from comfoair</p>
+    <p>Node reading and writing parameters of a Comfoair unit.</p>
     <p>To send commands to your Comfoair you have to send messages with a command name and params.</p>
-    <p>This have to look like this: <code>{"name":"setLevel","params":{"level":"away"}}</code></p>
+    <p>This have to look like this: 
+    <code>{ "name": "setLevel",
+            "params": { "level": "away" }
+          }</code></p>
     <p>Also for reading data: <code>{
         "name": "getTemperatureStates",
         "params": {}
     }</code></p>
+    <h3>Read Functions</h3>
+    <li>getBootloaderVersion - Bootloader version</li>
+    <li>getFirmwareVersion - Firmware version</li>
+    <li>getFlapState - Flap state</li>
+    <li>getFanState - Fan state</li>
+    <li>getBypassControllerState - Bypass controller state</li>
+    <li>getOperatingHours - Operating hours</li>
+    <li>getVentilationLevel - Get ventilation levels</li>
+    <li>getTemperatures - Temperatures</li>
+    <li>getTemperatureStates - Temperature states</li>
+    <li>getFaults - Operating faults</li>
+
+    <h3>WriteFunctions</h3>
+    <li>setLevel - Set level, Arguments: level</li>
+    <li>setComfortTemperature - Set comfort temperature, Arguments: temperature</li>
+    <li>setVentilationLevel - Set ventilation level, Arguments: exhaustAway, exhaustLow, exhaustMiddle, exhaustHigh, supplyAway, supplyLow, supplyMiddle, supplyHigh</li>
+    <li>reset - Reset and self test, Arguments: resetFaults, resetSettings, runSelfTest, resetFilterTimer</li>
 </script>
 
 <script type="text/x-red" data-template-name="comfoair">
