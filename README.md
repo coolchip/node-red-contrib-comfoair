@@ -17,6 +17,21 @@ Just run
 Connect to your bus system via serial connection and configure the comfoair node.
 Follow the instruction for [streaming with comfoair](https://github.com/coolchip/node-comfoair#as-streaming-object) and pass json objects to this node.
 
+### Additional info from [VincentSC](https://github.com/VincentSC)
+Zehnder talks about intake, exhaust, supply and extract. Or extract, supply, incoming and outgoing.
+
+This library uses supply, exhaust, outgoing and outside.
+
+![intake-exhaust-supply-extract](https://github.com/coolchip/node-red-contrib-comfoair/blob/master/image1.png)
+
+![image](https://github.com/coolchip/node-red-contrib-comfoair/blob/master/image2.png)
+
+This is my guess how it translates:
+- `outside` = intake / incoming
+- `supply` = supply 
+- `exhaust` = extract
+- `outgoing` = exhaust / outgoing
+
 ### Example
 ![](examples/full-example-by-VincentSC.png)
 ```text
