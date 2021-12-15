@@ -11,15 +11,15 @@ module.exports = function (RED) {
         if (this.serialConfig) {
             const node = this;
 
-            node.comfoair = comfoairPool.get(this.serialConfig.serialport, this.serialConfig.serialbaud, this.serialConfig.reconnectTimeout);
-            node.comfoair.on('ready', function () {
+            node.comfoair = comfoairPool.get(node.serialConfig.serialport, node.serialConfig.serialbaud, node.serialConfig.reconnectTimeout);
+            node.comfoair.on('ready', () => {
                 node.status({
                     fill: 'green',
                     shape: 'dot',
                     text: 'node-red:common.status.connected'
                 });
             });
-            node.comfoair.on('closed', function () {
+            node.comfoair.on('closed', () => {
                 node.status({
                     fill: 'red',
                     shape: 'ring',
@@ -27,7 +27,7 @@ module.exports = function (RED) {
                 });
             });
 
-            this.on('input', function (msg, send, done) {
+            node.on('input', function (msg, send, done) {
                 // For maximum backwards compatibility, check that send exists.
                 // If this node is installed in Node-RED 0.x, it will need to
                 // fallback to using `node.send`
@@ -48,15 +48,12 @@ module.exports = function (RED) {
 
                     node.comfoair.runCommand(msg.payload.name, msg.payload.params, (err, resp) => {
                         if (err) {
-                            return comfoairPool.close(node.serialConfig.serialport, () => {
-                                node.comfoair = comfoairPool.get(node.serialConfig.serialport, node.serialConfig.serialbaud, node.serialConfig.reconnectTimeout);
-                                const errMsg = `comfoair [${node.comfoair.port}] runCommand(${msg.payload.name}): ${err.message}`;
-                                handleError(errMsg, msg);
-                            });
+                            const errMsg = `comfoair [${node.comfoair.port}] runCommand(${msg.payload.name}): ${err.message}`;
+                            return handleError(errMsg, msg);
                         }
                         if (resp) {
                             if (!resp.valid) {
-                                RED.log.warn(`Invalid checksum or frame length for ${msg.payload.name}`);
+                                RED.log.warn(`${resp.error} for ${msg.payload.name}`);
                                 if (done) {
                                     done();
                                 }
@@ -110,9 +107,6 @@ module.exports = function (RED) {
                         on(eventName, cb) {
                             this._emitter.on(eventName, cb);
                         },
-                        close(cb) {
-                            this.comfoair.close(cb);
-                        },
                         runCommand(name, params, cb) {
                             this.comfoair.runCommand(name, params, cb);
                         },
@@ -130,12 +124,6 @@ module.exports = function (RED) {
                                 port,
                                 error: err.toString()
                             }));
-                            connections[port].close(function (err) {
-                                RED.log.info(RED._('comfoair.errors.closed', {
-                                    port,
-                                    error: err.toString()
-                                }));
-                            });
                             obj._emitter.emit('closed');
                             obj.tout = setTimeout(function () {
                                 setupComfoair();
@@ -162,9 +150,6 @@ module.exports = function (RED) {
                             }
                             obj._emitter.emit('ready');
                         });
-                        obj.comfoair.on('data', function (d) {
-                            obj._emitter.emit('data', d);
-                        });
                     };
                     setupComfoair();
                     return obj;
@@ -178,7 +163,7 @@ module.exports = function (RED) {
                     }
                     connections[port]._closing = true;
                     try {
-                        connections[port].close(function () {
+                        connections[port].comfoair.close(function () {
                             RED.log.info(RED._('comfoair.errors.closed', {
                                 port
                             }));
