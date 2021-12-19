@@ -1,5 +1,6 @@
 module.exports = function (RED) {
     'use strict';
+    const serialp = require('serialport');
 
     function ComfoairConnectionNode(n) {
         RED.nodes.createNode(this, n);
@@ -9,11 +10,15 @@ module.exports = function (RED) {
     }
     RED.nodes.registerType('comfoair-connection', ComfoairConnectionNode);
 
-    RED.httpAdmin.get('/comfoairports', RED.auth.needsPermission('serial.read'), function (req, res) {
-        const serialport = require('serialport');
-        serialport.list(function (err, ports) {
-            if (err) return RED.log.error(err);
-            res.json(ports);
-        });
+    RED.httpAdmin.get('/comfoair-serialports', RED.auth.needsPermission('serial.read'), function(req,res) {
+        serialp.list().then(
+            ports => {
+                const a = ports.map(p => p.path);
+                res.json(a);
+            },
+            err => {
+                res.json([RED._(`serialport.list() error: ${err}`)]);
+            }
+        );
     });
 };
