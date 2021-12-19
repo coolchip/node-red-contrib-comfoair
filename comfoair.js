@@ -53,7 +53,7 @@ module.exports = function (RED) {
                         }
                         if (resp) {
                             if (!resp.valid) {
-                                RED.log.warn(`${resp.error} for ${msg.payload.name}`);
+                                node.warn(`${resp.error} for ${msg.payload.name}`);
                                 if (done) {
                                     done();
                                 }
