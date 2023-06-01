@@ -1,6 +1,6 @@
 module.exports = function (RED) {
     'use strict';
-    const serialp = require('serialport');
+    const { serialp } = require('serialport');
 
     function ComfoairConnectionNode(n) {
         RED.nodes.createNode(this, n);
